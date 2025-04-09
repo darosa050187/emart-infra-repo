@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emart-sql-deployment
+  labels:
+    app: emart-sql-database  #0001 - Match this two togheter to explicitly tight them
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: emart-sql-database #0001 - Match this two togheter to explicitly tight them
+  template:
+    metadata:
+      labels:
+        app: emart-sql-database #0001 - Match this two togheter to explicitly tight them
+    spec:
+      containers:
+      - name: emartdb
+        image: mysql:8.0.33
+        ports:
+        - name: emart-port
+          containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: emart-sql-secrets
+              key: sql-password
+        - name: MYSQL_DATABASE
+          value: "books"
+        volumeMounts:
+          - mountPath: /var/lib/mysql 
+            name: emart-sql-database-volume
+      volumes:
+      - name: emart-sql-database-volume
+        persistentVolumeClaim:
+          claimName: emart-mysql-pvc-claim
+      - name: init-db
+        configMap:
+          name: emart-sql-configmap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: emartdb # Change this in the application properties file to "emart-sql-service"
+spec:
+  selector:
+    app: emart-sql-database   #0001 - Match this two togheter to explicitly tight them
+  ports:
+    - protocol: TCP
+      port: 3306
+      targetPort: emart-port
+  type: ClusterIP

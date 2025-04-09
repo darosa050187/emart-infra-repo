@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emart-client-deployment
+  labels:
+    app: emart-client-repo #0001 - Match this two togheter to explicitly tight them
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: emart-client-repo #0001 - Match this two togheter to explicitly tight them
+  template:
+    metadata:
+      labels:
+        app: emart-client-repo #0001 - Match this two togheter to explicitly tight them
+    spec:
+      containers:
+      - name: emart-client-repo
+        image: 084828572941.dkr.ecr.us-east-1.amazonaws.com/emart-client-repository:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 4200
+      imagePullSecrets:
+      - name: aws-ecr-secrets
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: emart-client-service
+spec:
+  selector:
+    app: emart-client-repo   #0001 - Match this two togheter to explicitly tight them
+  ports:
+    - protocol: TCP
+      port: 4200
+      targetPort: 4200
+  type: ClusterIP

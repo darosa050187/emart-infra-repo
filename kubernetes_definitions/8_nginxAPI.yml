@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emart-nginx-deployment
+  labels:
+    app: emart-nginx-load  #0001 - Match this two togheter to explicitly tight them
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: emart-nginx-load #0001 - Match this two togheter to explicitly tight them
+  template:
+    metadata:
+      labels:
+        app: emart-nginx-load #0001 - Match this two togheter to explicitly tight them
+    spec:
+      containers:
+      - name: nginx-load
+        image: nginx:latest
+        ports:
+        - name: nginx-port
+          containerPort: 80
+        volumeMounts:
+        - name: nginx-config-files
+          mountPath: /etc/nginx/conf.d
+      volumes:
+        - name: nginx-config-files
+          configMap:
+            name: emart-nginx-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx # Change this in the application properties file to "emart-sql-service"
+spec:
+  selector:
+    app: emart-nginx-load   #0001 - Match this two togheter to explicitly tight them
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: nginx-port
+      nodePort: 30001
+  type: NodePort

@@ -1,0 +1,20 @@
+AWS_ACCESS_KEY_ID="AKIARHQBNJUGVTSXGQXC"
+AWS_SECRET_ACCESS_KEY="MTRuL2RTMFZUZExNbENTSmE1Mm80VFJVMGZKZ2hOVjBHc2JCNWc1SA=="
+AWS_REGION=us-east-1
+AWS_ACCOUNT_ID=084828572941
+ECR_REGISTRY="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+
+AUTH_STRING=$(echo -n "AWS:${AWS_SECRET_ACCESS_KEY}" | base64)
+
+cat <<EOF > .dockerconfigjson
+{
+  "auths": {
+    "${ECR_REGISTRY}": {
+      "username": "AWS",
+      "password": "${AWS_SECRET_ACCESS_KEY}",
+      "email": "danyboyvonderrose@gmail.com",
+      "auth": "${AWS_SECRET_ACCESS_KEY}"
+    }
+  }
+}
+EOF

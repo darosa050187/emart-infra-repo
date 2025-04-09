@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emart-mongo-deployment
+  labels:
+    app: emart-mongo-database  #0001 - Match this two togheter to explicitly tight them
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: emart-mongo-database  #0001 - Match this two togheter to explicitly tight them
+  template:
+    metadata:
+      labels:
+        app: emart-mongo-database  #0001 - Match this two togheter to explicitly tight them
+    spec:
+      containers:
+      - name: emongo
+        image: mongo:4
+        ports:
+        - containerPort: 27017
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: emart-mongo-secrets
+              key: mongo-root-user
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: emart-mongo-secrets
+              key: mongo-root-password
+        volumeMounts:
+        - name: emart-mongo-database-volume
+          mountPath: /data/db
+      volumes:
+        - name: emart-mongo-database-volume
+          persistentVolumeClaim:
+            claimName: emart-mongo-pvc-claim
+        - name: init-db
+          configMap:
+            name: emart-sql-configmap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: emongo # Change this in the application properties file to "emart-sql-service"
+spec:
+  selector:
+    app: emart-mongo-database  #0001 - Match this two togheter to explicitly tight them
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+  type: ClusterIP
